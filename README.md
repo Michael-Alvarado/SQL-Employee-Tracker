@@ -21,6 +21,7 @@
   ## Usage
   
   Run 'npm run start' to initialize the program
+  [Link to demo](https://drive.google.com/file/d/1dHCX9g0WbPw7qSP89JBp9AzgbXEnOeOQ/view)
 
   ## License
   
