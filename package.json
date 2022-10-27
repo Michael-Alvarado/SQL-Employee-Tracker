@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "description": "Command-line application that manages a company's employee database, using Node.js, Inquirer, and MySQL.",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "seeds": "source db/seeds.sql"
   },
   "repository": {
     "type": "git",
@@ -22,7 +24,7 @@
     "console.table": "^0.10.0",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "inquirer": "^9.1.4",
-    "mysql": "^2.18.1"
+    "inquirer": "^8.2.0",
+    "mysql2": "^2.3.3"
   }
 }

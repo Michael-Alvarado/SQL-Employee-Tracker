@@ -4,30 +4,30 @@ CREATE DATABASE employee_db;
 USE employee_db;
 
 CREATE TABLE departments (
-    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    deptName VARCHAR(30) NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    deptName VARCHAR(30) NOT NULL
 );
 
 CREATE TABLE roles (
-    id INT NOT AUTO_INCREMENT NULL PRIMARY KEY,
-    title VARCHAR(30) NOT NULL,
-    salary DECIMAL NOT NULL,
-    departmentId INT NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(30) UNIQUE NOT NULL,
+    salary INT UNSIGNED NOT NULL,
+    departmentId INT UNSIGNED,
     FOREIGN KEY (departmentId)
-    REFERENCES department(id)
-    ON DELETE SET NULL
+    REFERENCES departments(id)
+    ON DELETE CASCADE
 );
 
 CREATE TABLE employees (
-    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     firstName VARCHAR(30) NOT NULL,
     lastName VARCHAR(30) NOT NULL,
-    roleId INT NOT NULL,
-    managerId INT,
+    roleId INT UNSIGNED,
     FOREIGN KEY (roleId)
-    REFERENCES emp_role(id)
-    ON DELETE SET NULL,
+    REFERENCES roles(id)
+    ON DELETE CASCADE,
+    managerId INT UNSIGNED,
     FOREIGN KEY (managerId)
-    REFERENCES employee(id)
-    ON DELETE SET NULL
+    REFERENCES employees(id)
+    ON DELETE NO ACTION
 );

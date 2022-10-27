@@ -1,8 +1,6 @@
-const inquirer = require('inquirer');
-const db = require('./db/connect');
-const express = require('express');
-const exp = require('constants');
-const { isBuffer } = require('util');
+import inquirer from 'inquirer';
+import express from 'express';
+import db from "./db/connection.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -10,9 +8,16 @@ const PORT = process.env.PORT || 3001;
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
+            // '*View Employees by Manager',
+            // '*View Employees by Department',
+            // '*Remove Department',
+            // '*Remove Employee',
+            // '*Remove Role',
+            // '*View Total Utilized Budget of Department',
+
 const mainMenu = [
     {
-        type: 'input',
+        type: 'list',
         name: 'main',
         message: 'What would you like to do?',
         choices: [
@@ -24,20 +29,14 @@ const mainMenu = [
             'Add an Employee',
             'Update an Employee Role',
             'Update an Employee Manager',
-            // '*View Employees by Manager',
-            // '*View Employees by Department',
-            // '*Remove Department',
-            // '*Remove Employee',
-            // '*Remove Role',
-            // '*View Total Utilized Budget of Department',
             'End Session'
         ]
     }
 ];
 
 function init() {
-    inquirer.prompt(mainMenu).then(choice => {
-        switch (choice.main) {
+    inquirer.prompt(mainMenu).then(response => {
+        switch (response.main) {
             case 'View All Departments':
                 viewDepts();
                 break;
@@ -64,12 +63,13 @@ function init() {
                 break;
             case 'End Session':
                 console.log('Session ended successfully!');
+                break;
         }
     });
 };
 
 const viewDepts = () => {
-    const sql = (`SELECT * FROM employee_db.departments`);
+    const sql = (`SELECT id, deptName FROM employee_db.departments`);
     db.query(sql, (err, rows) => {
         if(err) {
             return err;
@@ -80,12 +80,9 @@ const viewDepts = () => {
 };
 
 const viewRoles = () => {
-    const sql = (`SELECT roles.id AS roleId, 
-                roles.title AS jobTitle, 
-                roles.salary AS salary,
-                departments.deptName AS departmentName,
+    const sql = (`SELECT roles.title AS jobTitle, roles.salary, departments.deptName AS departmentName
                 FROM roles
-                LEFT JOIN departments
+                JOIN departments
                 ON roles.departmentId = departments.id`);
     db.query(sql, (err, rows) => {
         if(err) {
@@ -103,7 +100,7 @@ const viewEmps = () => {
                 employees.managerId AS manager,
                 departments.deptName AS departmentName,
                 roles.title AS jobTitle,
-                roles.salary AS salary,
+                roles.salary
                 FROM employees
                 LEFT JOIN roles
                 ON employees.roleId = roles.id
@@ -190,8 +187,14 @@ const addEmp = () => {
             message: "Enter the ID of the employee's manager:"
         }
     ]).then((responses) => {
-        const sql = `INSERT INTO employees (firstName, lastName, roleId, managerId)
+        let sql = '';
+        if(responses.manager === 'null') {
+            sql = `INSERT INTO employees (firstName, lastName, roleId, managerId)
+                    VALUES ('${responses.firstName}', '${responses.lastName}', '${responses.roleId}', null)`;
+        } else {
+            sql = `INSERT INTO employees (firstName, lastName, roleId, managerId)
                     VALUES ('${responses.firstName}', '${responses.lastName}', '${responses.roleId}', '${responses.manager}')`;
+        }
         db.query(sql, (err, rows) => {
             if(err) {
                 return err;
@@ -215,8 +218,9 @@ const updateRole = () => {
             message: "Enter the ID of the employee's new role:"
         }
     ]).then((responses) => {
-        const sql = `UPDATE employees SET roleId = '${responses.newRole}'
-                    WHERE employeeId = '${responses.empId}'`;
+        const sql = `UPDATE employees 
+                    SET roleId = '${responses.newRole}'
+                    WHERE id = '${responses.empId}'`;
         db.query(sql, (err, rows) => {
             if(err) {
                 return err;
@@ -227,9 +231,38 @@ const updateRole = () => {
     });
 };
 
-
-
-
+const updateMgr = () => {
+    return inquirer.prompt([
+        {
+            type: 'input',
+            name: 'empId',
+            message: "Enter the employee's ID who's manager is to be updated:"
+        },
+        {
+            type: 'input',
+            name: 'newMgr',
+            message: "Enter the ID of the employee's new manager:"
+        }
+    ]).then((responses) => {
+        let sql = '';
+        if(responses.newMgr === 'null') {
+            sql = `UPDATE employees
+                    SET managerId = null
+                    WHERE id = '${responses.empId}'`;
+        } else {
+            sql = `UPDATE employees 
+                    SET managerId = '${responses.newMgr}'
+                    WHERE id = '${responses.empId}'`;
+                }
+        db.query(sql, (err, rows) => {
+            if(err) {
+                return err;
+            }
+            console.log("This employee's manager has been updated.");
+            init();
+        });
+    });
+};
 
 db.connect((err) => {
     if(err) throw err;
