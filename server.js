@@ -8,13 +8,6 @@ const PORT = process.env.PORT || 3001;
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-            // '*View Employees by Manager',
-            // '*View Employees by Department',
-            // '*Remove Department',
-            // '*Remove Employee',
-            // '*Remove Role',
-            // '*View Total Utilized Budget of Department',
-
 const mainMenu = [
     {
         type: 'list',
@@ -29,6 +22,12 @@ const mainMenu = [
             'Add an Employee',
             'Update an Employee Role',
             'Update an Employee Manager',
+            'View Employees by Manager',
+            'View Employees by Department',
+            'Remove Department',
+            'Remove Employee',
+            'Remove Role',
+            'View Total Utilized Budget of Department',
             'End Session'
         ]
     }
@@ -60,6 +59,24 @@ function init() {
                 break;
             case 'Update an Employee Manager':
                 updateMgr();
+                break;
+            case 'View Employees by Manager':
+                empsByMgr();
+                break;
+            case 'View Employees by Department':
+                empsByDept();
+                break;
+            case 'Remove Department':
+                removeDept();
+                break;
+            case 'Remove Employee':
+                removeEmp();
+                break;
+            case 'Remove Role':
+                removeRole();
+                break;
+            case 'View Total Utilized Budget of Department':
+                viewBudget();
                 break;
             case 'End Session':
                 console.log('Session ended successfully!');
@@ -102,10 +119,8 @@ const viewEmps = () => {
                 roles.title AS jobTitle,
                 roles.salary
                 FROM employees
-                LEFT JOIN roles
-                ON employees.roleId = roles.id
-                INNER JOIN departments
-                ON roles.departmentId = departments.id`);
+                LEFT JOIN roles ON employees.roleId = roles.id
+                INNER JOIN departments ON roles.departmentId = departments.id`);
     db.query(sql, (err, rows) => {
         if(err) {
             return err;
@@ -261,6 +276,121 @@ const updateMgr = () => {
             console.log("This employee's manager has been updated.");
             init();
         });
+    });
+};
+
+const empsByMgr = () => {
+    const sql = (`SELECT employees.id AS employeeId, 
+                employees.firstName,
+                employees.lastName,
+                employees.managerId AS manager,
+                departments.deptName AS departmentName,
+                roles.title AS jobTitle,
+                roles.salary
+                FROM employees
+                LEFT JOIN roles ON employees.roleId = roles.id
+                INNER JOIN departments ON roles.departmentId = departments.id
+                ORDER BY manager`);
+    db.query(sql, (err, rows) => {
+        if(err) {
+            return err;
+        }
+        console.table(rows);
+        init();
+    });
+};
+
+const empsByDept = () => {
+    const sql = (`SELECT employees.id AS employeeId, 
+                employees.firstName,
+                employees.lastName,
+                employees.managerId AS manager,
+                departments.deptName AS departmentName,
+                roles.title AS jobTitle,
+                roles.salary
+                FROM employees
+                LEFT JOIN roles ON employees.roleId = roles.id
+                INNER JOIN departments ON roles.departmentId = departments.id
+                ORDER BY departmentName`);
+    db.query(sql, (err, rows) => {
+        if(err) {
+            return err;
+        }
+        console.table(rows);
+        init();
+    });
+};
+
+const removeDept = () => {
+    return inquirer.prompt([
+        {
+            type: 'input',
+            name: 'deptToRmv',
+            message: "Enter the ID of the department you want to remove:"
+        }
+    ]).then(({deptToRmv}) => {
+        const sql = `DELETE FROM departments WHERE id = '${deptToRmv}'`;
+        db.query(sql, (err, rows) => {
+            if(err) {
+                return err;
+            }
+            console.log(`Department successfully removed.`);
+            init();
+        });
+    });
+};
+
+const removeEmp = () => {
+    return inquirer.prompt([
+        {
+            type: 'input',
+            name: 'empToRmv',
+            message: "Enter the ID of the employee you want to remove:"
+        }
+    ]).then(({empToRmv}) => {
+        const sql = `DELETE FROM employees WHERE id = '${empToRmv}'`;
+        db.query(sql, (err, rows) => {
+            if(err) {
+                return err;
+            }
+            console.log(`Employee successfully removed.`);
+            init();
+        });
+    });
+};
+
+const removeRole = () => {
+    return inquirer.prompt([
+        {
+            type: 'input',
+            name: 'roleToRmv',
+            message: "Enter the ID of the role you want to remove:"
+        }
+    ]).then(({roleToRmv}) => {
+        const sql = `DELETE FROM roles WHERE id = '${roleToRmv}'`;
+        db.query(sql, (err, rows) => {
+            if(err) {
+                return err;
+            }
+            console.log(`Role successfully removed.`);
+            init();
+        });
+    });
+};
+
+const viewBudget = () => {
+    const sql = (`SELECT departments.deptName AS departmentName, 
+                SUM(roles.salary) AS budget
+                FROM employees
+                LEFT JOIN roles ON employees.roleId = roles.id
+                INNER JOIN departments ON roles.departmentID = departments.id
+                GROUP BY departmentName`);
+    db.query(sql, (err, rows) => {
+        if(err) {
+            return err;
+        }
+        console.table(rows);
+        init();
     });
 };
 
